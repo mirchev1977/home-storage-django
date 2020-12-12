@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from app.models import User
 from app.serializers import UserSerializer, UserLoggedSerializer
-from app.utils import add_access_headers
+from app.utils import add_access_headers, checkCredentials
 
 
 class UserNewView(APIView):
@@ -85,3 +85,37 @@ class UserLoginView(APIView):
                 }),
                 content_type="application/json",
             ))
+
+class UserDeleteView(APIView):
+    def get(self, req, id):
+        owner_id = checkCredentials(req)
+
+        if not owner_id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
+                content_type="application/json",
+            ))
+
+        if owner_id != id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User CANNOT be deleted!'}),
+                content_type="application/json",
+            ))
+
+        user = None
+        try:
+            user = User.objects.get(pk=id)
+        except:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User... CANNOT be deleted!'}),
+                content_type="application/json",
+            ))
+
+        user.delete()
+
+        return add_access_headers(HttpResponse(
+            json.dumps({'status': 'ok', 'userId': id}),
+            content_type="application/json",
+        ))
+
+
