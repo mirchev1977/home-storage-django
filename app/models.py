@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 class User(models.Model):
     name = models.CharField(max_length=255, null=False)
@@ -8,12 +9,14 @@ class User(models.Model):
     role = models.CharField(max_length=50)
     token = models.CharField(max_length=2000, null=True)
 
+
 class UserLogged(models.Model):
     token = models.CharField(max_length=1000, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE,
                               name = "owner")
     createdAt = models.CharField(max_length=255,
                                  null=True, name="created_at")
+
 
 class Location(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE,
@@ -22,11 +25,12 @@ class Location(models.Model):
     location = models.CharField(max_length=255, null=True)
     privacy = models.CharField(max_length=30, null=True)
 
+
 class Container(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE,
-                                name = "creator")
+                                name="creator")
     location = models.ForeignKey(Location, on_delete=models.CASCADE,
-                                 name = 'location')
+                                 name='location')
     description = models.CharField(null=True, max_length=2000)
     vertical = models.CharField(max_length=255, null=True)
     items = models.CharField(max_length=2000, null=True)
@@ -34,12 +38,13 @@ class Container(models.Model):
     imgLink = models.CharField(max_length=1000, null=True,
                                name="img_link")
     url = models.CharField(max_length=1000, null=True,
-                               name="url")
+                           name="url")
     coords = models.CharField(max_length=255, null=True)
+
 
 class Item(models.Model):
     description = models.CharField(max_length=1000, null=True)
     imgUrl = models.CharField(max_length=1000, null=True,
-                               name="img_url")
+                              name="img_url")
     container = models.ForeignKey(Container, on_delete=models.CASCADE,
                                   name="container")
