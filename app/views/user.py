@@ -8,7 +8,7 @@ from django.http import HttpResponse
 
 from rest_framework.views import APIView
 
-from app.models import User
+from app.models import User, UserLogged
 from app.serializers import UserSerializer, UserLoggedSerializer
 from app.utils import add_access_headers, checkCredentials
 
@@ -194,3 +194,26 @@ class UsersAllView(APIView):
             content_type="application/json",
         ))
 
+class UserLogoutView(APIView):
+    def get(self, req):
+        owner_id = checkCredentials(req)
+
+        if not owner_id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
+                content_type="application/json",
+            ))
+
+        token = req.headers['authorization']
+        lst_token = token.split(';;')
+
+        tokens = UserLogged.objects.filter(token=lst_token[0])
+
+        for tkn in tokens:
+            if tkn:
+                tkn.delete()
+
+        return add_access_headers(HttpResponse(
+            json.dumps({'status': 'ok'}),
+            content_type="application/json",
+        ))
