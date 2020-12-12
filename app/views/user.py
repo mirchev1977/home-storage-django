@@ -111,10 +111,58 @@ class UserDeleteView(APIView):
                 content_type="application/json",
             ))
 
+        if user.role != 'admin':
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'Not sufficient rights for this operation!'}),
+                content_type="application/json",
+            ))
+
         user.delete()
 
         return add_access_headers(HttpResponse(
             json.dumps({'status': 'ok', 'userId': id}),
+            content_type="application/json",
+        ))
+
+
+class UserUpdateView(APIView):
+    def post(self, req, id):
+        owner_id = checkCredentials(req)
+
+        if not owner_id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
+                content_type="application/json",
+            ))
+
+        user = None
+        try:
+            user = User.objects.get(pk=id)
+        except:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User CANNOT be updated!'}),
+                content_type="application/json",
+            ))
+
+        if user.role != 'admin':
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'Not sufficient rights for this operation!'}),
+                content_type="application/json",
+            ))
+
+        data = req.data.copy()
+        data['password'] = user.password
+        serializer = UserSerializer(user, data=data)
+        if not serializer.is_valid():
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User CANNOT be updated!'}),
+                content_type="application/json",
+            ))
+
+        serializer.save()
+
+        return add_access_headers(HttpResponse(
+            json.dumps({'status': 'ok'}),
             content_type="application/json",
         ))
 
