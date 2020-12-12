@@ -166,4 +166,31 @@ class UserUpdateView(APIView):
             content_type="application/json",
         ))
 
+class UsersAllView(APIView):
+    def get(self, req):
+        owner_id = checkCredentials(req)
+
+        if not owner_id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
+                content_type="application/json",
+            ))
+
+        users = User.objects.all()
+
+        resp = {'status': 'ok', 'users': []}
+        for usr in users:
+            resp['users'].append({
+                'id': usr.id,
+                'name': usr.name,
+                'email': usr.email,
+                'password': usr.password,
+                'role': usr.role,
+                'token': usr.token,
+            })
+
+        return add_access_headers(HttpResponse(
+            json.dumps(resp),
+            content_type="application/json",
+        ))
 
