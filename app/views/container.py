@@ -8,7 +8,7 @@ from django.http import HttpResponse
 
 from rest_framework.views import APIView
 
-from app.models import User, UserLogged
+from app.models import User, UserLogged, Container
 from app.serializers import UserSerializer, UserLoggedSerializer, ContainerSerializer
 from app.utils import add_access_headers, checkCredentials
 
@@ -173,25 +173,22 @@ class ContainerUpdateView(APIView):
 
 class ContainersAllView(APIView):
     def get(self, req):
-        owner_id = checkCredentials(req)
 
-        if not owner_id:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
-                content_type="application/json",
-            ))
+        containers = Container.objects.all()
 
-        users = User.objects.all()
-
-        resp = {'status': 'ok', 'users': []}
-        for usr in users:
-            resp['users'].append({
-                'id': usr.id,
-                'name': usr.name,
-                'email': usr.email,
-                'password': usr.password,
-                'role': usr.role,
-                'token': usr.token,
+        resp = {'status': 'ok', 'containers': []}
+        for cont in containers:
+            resp['containers'].append({
+                'id': cont.id,
+                'description': cont.description,
+                'vertical': cont.vertical,
+                'items': cont.items,
+                'privacy': cont.privacy,
+                'getImgLink': cont.url,
+                'url': cont.url,
+                'coords': cont.coords,
+                'creator': cont.creator.id,
+                'location': cont.location.id,
             })
 
         return add_access_headers(HttpResponse(

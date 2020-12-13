@@ -1,6 +1,6 @@
 from django.urls import path
 
-from app.views.container import ContainerNewView
+from app.views.container import ContainerNewView, ContainersAllView
 from app.views.location import LocationUpdateView, LocationsAllView
 from app.views.test import test
 from app.views.user import UserNewView, UserLoginView, UserDeleteView, UserUpdateView, UsersAllView, UserLogoutView
@@ -20,6 +20,7 @@ urlpatterns = [
 
     #container routes
     path('containers/new', ContainerNewView.as_view(), name='container-new'),
+    path('containers/all', ContainersAllView.as_view(), name='containers-all'),
 
     #test
     path('', test, name='test'),
