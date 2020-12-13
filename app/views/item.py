@@ -79,34 +79,20 @@ class ItemUpdateView(APIView):
                 content_type="application/json",
             ))
 
-        container = None
-        try:
-            container = Container.objects.get(pk=id)
-        except:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'Container CANNOT be updated!'}),
-                content_type="application/json",
-            ))
-
-        if container.creator.id != owner_id:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'Not sufficient rights for this operation!'}),
-                content_type="application/json",
-            ))
-
+        resp = {'status': 'err'}
         data = req.data.copy()
-        data['img_link'] = data['url']
-        serializer = ContainerSerializer(container, data=data)
-        if not serializer.is_valid():
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'Container CANNOT be updated!'}),
-                content_type="application/json",
-            ))
+        data['img_url'] = data['imgUrl']
 
-        serializer.save()
+        item = Item.objects.get(pk=id)
+
+        serializer = ItemSerializer(item, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            resp['status'] = 'ok'
+            resp['id'] = serializer.data['id']
 
         return add_access_headers(HttpResponse(
-            json.dumps({'status': 'ok', 'container': id}),
+            json.dumps(resp),
             content_type="application/json",
         ))
 
