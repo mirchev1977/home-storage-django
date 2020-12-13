@@ -5,6 +5,7 @@ from hashlib import sha1
 
 import bcrypt as bcrypt
 from django.http import HttpResponse
+from pip._vendor import requests
 
 from rest_framework.views import APIView
 
@@ -161,3 +162,14 @@ class ItemsPasteView(APIView):
             json.dumps({'status': 'ok'}),
             content_type="application/json",
         ))
+
+class ItemsUploadFileView(APIView):
+    def post(self, req):
+        r = requests.post('https://mirchev-home-storage-sym.herokuapp.com/items/uploadFile', data={
+           'image': req.data['image']
+        }, headers={
+            'Authorization': req.data['authorization'],
+        })
+
+        return r['imageUrl']
+
