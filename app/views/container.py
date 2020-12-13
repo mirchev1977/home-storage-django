@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 
 from app.models import User, UserLogged, Container
-from app.serializers import UserSerializer, UserLoggedSerializer, ContainerSerializer
+from app.serializers import UserSerializer, UserLoggedSerializer, ContainerSerializer, ItemSerializer
 from app.utils import add_access_headers, checkCredentials
 
 
@@ -32,6 +32,14 @@ class ContainerNewView(APIView):
             resp['status'] = 'ok'
             resp['contId'] = serializer.data['id']
             resp['coords'] = data['coords']
+
+            item = ItemSerializer(data={
+                'container': serializer.data['id'],
+                'description': serializer.data['description'],
+                'img_url': serializer.data['url']
+            })
+            if item.is_valid():
+                item.save()
 
         return add_access_headers(HttpResponse(
             json.dumps(resp),
