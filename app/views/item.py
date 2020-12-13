@@ -133,3 +133,31 @@ class ItemsAllView(APIView):
             content_type="application/json",
         ))
 
+class ItemsPasteView(APIView):
+    def get(self, req):
+        owner_id = checkCredentials(req)
+
+        if not owner_id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
+                content_type="application/json",
+            ))
+
+        data = req.data.copy()
+        paste_items = data['itemIds']
+
+        for itemId in paste_items:
+            item = Item.objects.get(pk=itemId)
+            item_data = {
+                'description': item.description,
+                'img_url': item.img_url,
+                'container_id': itemId
+            }
+            serializer = ItemSerializer(item, data=item_data)
+            if serializer.is_valid():
+                serializer.save()
+
+        return add_access_headers(HttpResponse(
+            json.dumps({'status': 'ok'}),
+            content_type="application/json",
+        ))

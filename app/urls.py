@@ -1,7 +1,7 @@
 from django.urls import path
 
 from app.views.container import ContainerNewView, ContainersAllView, ContainerDeleteView, ContainerUpdateView, ContainerSearchItemView
-from app.views.item import ItemNewView, ItemUpdateView, ItemDeleteView, ItemsAllView
+from app.views.item import ItemNewView, ItemUpdateView, ItemDeleteView, ItemsAllView, ItemsPasteView
 from app.views.location import LocationUpdateView, LocationsAllView
 from app.views.test import test
 from app.views.user import UserNewView, UserLoginView, UserDeleteView, UserUpdateView, UsersAllView, UserLogoutView
@@ -31,6 +31,7 @@ urlpatterns = [
     path('item/<int:id>/update', ItemUpdateView.as_view(), name='item-update'),
     path('item/<int:id>/delete', ItemDeleteView.as_view(), name='item-delete'),
     path('items/<int:contId>/all', ItemsAllView.as_view(), name='items-all'),
+    path('items/paste', ItemsPasteView.as_view(), name='items-paste'),
 
     #test
     path('', test, name='test'),
