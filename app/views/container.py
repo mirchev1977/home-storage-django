@@ -132,34 +132,34 @@ class ContainerUpdateView(APIView):
                 content_type="application/json",
             ))
 
-        user = None
+        container = None
         try:
-            user = User.objects.get(pk=id)
+            container = Container.objects.get(pk=id)
         except:
             return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'User CANNOT be updated!'}),
+                json.dumps({'status': 'err', 'msg': 'Container CANNOT be updated!'}),
                 content_type="application/json",
             ))
 
-        if user.role != 'admin':
+        if container.creator.id != owner_id:
             return add_access_headers(HttpResponse(
                 json.dumps({'status': 'err', 'msg': 'Not sufficient rights for this operation!'}),
                 content_type="application/json",
             ))
 
         data = req.data.copy()
-        data['password'] = user.password
-        serializer = UserSerializer(user, data=data)
+        data['img_link'] = data['url']
+        serializer = ContainerSerializer(container, data=data)
         if not serializer.is_valid():
             return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'User CANNOT be updated!'}),
+                json.dumps({'status': 'err', 'msg': 'Container CANNOT be updated!'}),
                 content_type="application/json",
             ))
 
         serializer.save()
 
         return add_access_headers(HttpResponse(
-            json.dumps({'status': 'ok'}),
+            json.dumps({'status': 'ok', 'container': id}),
             content_type="application/json",
         ))
 

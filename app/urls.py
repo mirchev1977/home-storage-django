@@ -1,6 +1,6 @@
 from django.urls import path
 
-from app.views.container import ContainerNewView, ContainersAllView, ContainerDeleteView
+from app.views.container import ContainerNewView, ContainersAllView, ContainerDeleteView, ContainerUpdateView
 from app.views.location import LocationUpdateView, LocationsAllView
 from app.views.test import test
 from app.views.user import UserNewView, UserLoginView, UserDeleteView, UserUpdateView, UsersAllView, UserLogoutView
@@ -22,6 +22,7 @@ urlpatterns = [
     path('containers/new', ContainerNewView.as_view(), name='container-new'),
     path('containers/all', ContainersAllView.as_view(), name='containers-all'),
     path('containers/<int:id>/delete', ContainerDeleteView.as_view(), name='container-delete'),
+    path('container/<int:id>/update', ContainerUpdateView.as_view(), name='container-update'),
 
     #test
     path('', test, name='test'),
