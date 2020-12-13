@@ -1,4 +1,4 @@
-# home_storage_django rest API receiving requests from the angular front-end deployed currently on: http://mirchev-home-storage-ang.herokuapp.com/
+# home_storage_django rest API receiving requests from the angular front-end deployed currently at: http://mirchev-home-storage-ang.herokuapp.com/
 
 # SAMPLE CURL REQUESTS
 
