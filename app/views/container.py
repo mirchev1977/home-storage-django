@@ -8,7 +8,7 @@ from django.http import HttpResponse
 
 from rest_framework.views import APIView
 
-from app.models import User, UserLogged, Container
+from app.models import User, UserLogged, Container, Item
 from app.serializers import UserSerializer, UserLoggedSerializer, ContainerSerializer, ItemSerializer
 from app.utils import add_access_headers, checkCredentials
 
@@ -46,58 +46,6 @@ class ContainerNewView(APIView):
             content_type="application/json",
         ))
 
-
-class ContainerLoginView(APIView):
-    def post(self, req):
-        users = User.objects.filter(email=req.data['email'])
-
-        log_user = None
-        for user in users:
-            log_user = user
-            break
-
-        if not log_user:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': ''}),
-                content_type="application/json",
-            ))
-
-        if log_user:
-            req_pwd = req.data['password']
-            if not ( bcrypt.checkpw(req_pwd.encode(), log_user.password.encode()) ):
-                return add_access_headers(HttpResponse(
-                    json.dumps({'status': ''}),
-                    content_type="application/json",
-                ))
-
-            sha = sha1(secrets.token_bytes(4))
-            serializer_logged = UserLoggedSerializer(data={
-                'created_at': int(time.time()),
-                'owner': log_user.id,
-                'token': sha.hexdigest()
-            })
-
-            if not serializer_logged.is_valid():
-                return add_access_headers(HttpResponse(
-                    json.dumps({'status': ''}),
-                    content_type="application/json",
-                ))
-
-            serializer_logged.save()
-            return add_access_headers(HttpResponse(
-                json.dumps({
-                    'status': 'ok',
-                    'usrId': log_user.id,
-                    'token': log_user.token,
-                    'user': {
-                        'id':    log_user.id,
-                        'name':  log_user.name,
-                        'email': log_user.email,
-                        'role':  log_user.role,
-                    }
-                }),
-                content_type="application/json",
-            ))
 
 class ContainerDeleteView(APIView):
     def get(self, req, id):
@@ -196,8 +144,8 @@ class ContainersAllView(APIView):
             content_type="application/json",
         ))
 
-class ContainerLogoutView(APIView):
-    def get(self, req):
+class ContainerSearchItemView(APIView):
+    def post(self, req):
         owner_id = checkCredentials(req)
 
         if not owner_id:
@@ -206,16 +154,47 @@ class ContainerLogoutView(APIView):
                 content_type="application/json",
             ))
 
-        token = req.headers['authorization']
-        lst_token = token.split(';;')
+        containers = Container.objects.filter(location_id=req.data['location'])
 
-        tokens = UserLogged.objects.filter(token=lst_token[0])
+        location_items = []
+        for cont in containers:
+            itms = Item.objects.filter(container_id=cont.id)
+            for itm in itms:
+                location_items.append(itm)
 
-        for tkn in tokens:
-            if tkn:
-                tkn.delete()
+        searchTerm = req.query_params['searchTerm']
+        searchTerm = searchTerm.lower()
+
+        found_containers = {}
+        for item in location_items:
+            descr = item.description
+            descr = descr.lower()
+            if descr.find(searchTerm) != -1:
+                container = Container.objects.get(pk=item.container.id)
+                found_containers[container.id] = container
+
+        resp_arr = []
+        for f_cont_key in found_containers:
+            found = found_containers[f_cont_key]
+            resp_arr.append({
+                'id': found.id,
+                'description': found.description,
+                'vertical': found.vertical,
+                'items': found.items,
+                'privacy': found.privacy,
+                'getImgLink': found.url,
+                'url': found.url,
+                'coords': found.coords,
+                'creator': found.creator.id,
+                'location': found.location.id,
+            })
+
+        resp = {'status': 'ok', 'containers': resp_arr}
 
         return add_access_headers(HttpResponse(
-            json.dumps({'status': 'ok'}),
+            json.dumps(resp),
             content_type="application/json",
         ))
+
+
+
