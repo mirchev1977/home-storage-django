@@ -1,10 +1,15 @@
 import json
+import secrets
+import time
+from hashlib import sha1
+
+import bcrypt as bcrypt
 from django.http import HttpResponse
 
 from rest_framework.views import APIView
 
-from app.models import Container, Item
-from app.serializers import ContainerSerializer, ItemSerializer
+from app.models import User, UserLogged, Container, Item
+from app.serializers import UserSerializer, UserLoggedSerializer, ContainerSerializer, ItemSerializer
 from app.utils import add_access_headers, checkCredentials
 
 
