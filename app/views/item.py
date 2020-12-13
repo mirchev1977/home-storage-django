@@ -13,7 +13,7 @@ from app.serializers import UserSerializer, UserLoggedSerializer, ContainerSeria
 from app.utils import add_access_headers, checkCredentials
 
 
-class ContainerNewView(APIView):
+class ItemNewView(APIView):
     def post(self, req):
         owner_id = checkCredentials(req)
 
@@ -25,21 +25,12 @@ class ContainerNewView(APIView):
 
         resp = {'status': 'err'}
         data = req.data.copy()
-        data['img_link'] = data['imgLink']
-        serializer = ContainerSerializer(data=data)
+        data['img_url'] = data['imgUrl']
+        serializer = ItemSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             resp['status'] = 'ok'
-            resp['contId'] = serializer.data['id']
-            resp['coords'] = data['coords']
-
-            item = ItemSerializer(data={
-                'container': serializer.data['id'],
-                'description': serializer.data['description'],
-                'img_url': serializer.data['url']
-            })
-            if item.is_valid():
-                item.save()
+            resp['id'] = serializer.data['id']
 
         return add_access_headers(HttpResponse(
             json.dumps(resp),
@@ -47,7 +38,7 @@ class ContainerNewView(APIView):
         ))
 
 
-class ContainerDeleteView(APIView):
+class ItemDeleteView(APIView):
     def get(self, req, id):
         owner_id = checkCredentials(req)
 
@@ -78,7 +69,7 @@ class ContainerDeleteView(APIView):
         ))
 
 
-class ContainerUpdateView(APIView):
+class ItemUpdateView(APIView):
     def post(self, req, id):
         owner_id = checkCredentials(req)
 
@@ -119,7 +110,7 @@ class ContainerUpdateView(APIView):
             content_type="application/json",
         ))
 
-class ContainersAllView(APIView):
+class ItemsAllView(APIView):
     def get(self, req):
 
         containers = Container.objects.all()
@@ -143,58 +134,4 @@ class ContainersAllView(APIView):
             json.dumps(resp),
             content_type="application/json",
         ))
-
-class ContainerSearchItemView(APIView):
-    def post(self, req):
-        owner_id = checkCredentials(req)
-
-        if not owner_id:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
-                content_type="application/json",
-            ))
-
-        containers = Container.objects.filter(location_id=req.data['location'])
-
-        location_items = []
-        for cont in containers:
-            itms = Item.objects.filter(container_id=cont.id)
-            for itm in itms:
-                location_items.append(itm)
-
-        searchTerm = req.query_params['searchTerm']
-        searchTerm = searchTerm.lower()
-
-        found_containers = {}
-        for item in location_items:
-            descr = item.description
-            descr = descr.lower()
-            if descr.find(searchTerm) != -1:
-                container = Container.objects.get(pk=item.container.id)
-                found_containers[container.id] = container
-
-        resp_arr = []
-        for f_cont_key in found_containers:
-            found = found_containers[f_cont_key]
-            resp_arr.append({
-                'id': found.id,
-                'description': found.description,
-                'vertical': found.vertical,
-                'items': found.items,
-                'privacy': found.privacy,
-                'getImgLink': found.url,
-                'url': found.url,
-                'coords': found.coords,
-                'creator': found.creator.id,
-                'location': found.location.id,
-            })
-
-        resp = {'status': 'ok', 'containers': resp_arr}
-
-        return add_access_headers(HttpResponse(
-            json.dumps(resp),
-            content_type="application/json",
-        ))
-
-
 
