@@ -92,24 +92,41 @@ class ItemUpdateView(APIView):
         ))
 
 class ItemsAllView(APIView):
-    def get(self, req):
+    def get(self, req, contId):
+        owner_id = checkCredentials(req)
 
-        containers = Container.objects.all()
+        if not owner_id:
+            return add_access_headers(HttpResponse(
+                json.dumps({'status': 'err', 'msg': 'User NOT logged in!'}),
+                content_type="application/json",
+            ))
 
-        resp = {'status': 'ok', 'containers': []}
-        for cont in containers:
-            resp['containers'].append({
-                'id': cont.id,
-                'description': cont.description,
-                'vertical': cont.vertical,
-                'items': cont.items,
-                'privacy': cont.privacy,
-                'getImgLink': cont.url,
-                'url': cont.url,
-                'coords': cont.coords,
-                'creator': cont.creator.id,
-                'location': cont.location.id,
-            })
+        matched = []
+        non_matched = []
+        items = Item.objects.filter(container_id=contId)
+        searchTerm = req.query_params['searchTerm']
+
+        for item in items:
+            descr = item.description
+            descr = descr.lower()
+            if descr.find(searchTerm) != -1:
+                matched.append({
+                    'id': item.id,
+                    'description': item.description,
+                    'imgUrl': item.img_url,
+                    'contId': contId,
+                })
+            else:
+                non_matched.append({
+                    'id': item.id,
+                    'description': item.description,
+                    'imgUrl': item.img_url,
+                    'contId': contId,
+                })
+
+        joined_items = matched + non_matched
+
+        resp = {'status': 'ok', 'contId': contId, 'items': joined_items}
 
         return add_access_headers(HttpResponse(
             json.dumps(resp),
