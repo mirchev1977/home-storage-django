@@ -48,15 +48,10 @@ class ItemDeleteView(APIView):
                 content_type="application/json",
             ))
 
-        container = None
+        item = None
         try:
-            container = Container.objects.get(pk=id)
-            if container.creator.id != owner_id:
-                return add_access_headers(HttpResponse(
-                    json.dumps({'status': 'err', 'msg': 'Container... CANNOT be deleted!'}),
-                    content_type="application/json",
-                ))
-            container.delete()
+            item = Item.objects.get(pk=id)
+            item.delete()
         except:
             return add_access_headers(HttpResponse(
                 json.dumps({'status': 'err', 'msg': 'Not sufficient rights for this operation!'}),
