@@ -101,31 +101,23 @@ class ContainerDeleteView(APIView):
                 content_type="application/json",
             ))
 
-        if owner_id != id:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'User CANNOT be deleted!'}),
-                content_type="application/json",
-            ))
-
-        user = None
+        container = None
         try:
-            user = User.objects.get(pk=id)
+            container = Container.objects.get(pk=id)
+            if container.creator.id != owner_id:
+                return add_access_headers(HttpResponse(
+                    json.dumps({'status': 'err', 'msg': 'Container... CANNOT be deleted!'}),
+                    content_type="application/json",
+                ))
+            container.delete()
         except:
-            return add_access_headers(HttpResponse(
-                json.dumps({'status': 'err', 'msg': 'User... CANNOT be deleted!'}),
-                content_type="application/json",
-            ))
-
-        if user.role != 'admin':
             return add_access_headers(HttpResponse(
                 json.dumps({'status': 'err', 'msg': 'Not sufficient rights for this operation!'}),
                 content_type="application/json",
             ))
 
-        user.delete()
-
         return add_access_headers(HttpResponse(
-            json.dumps({'status': 'ok', 'userId': id}),
+            json.dumps({'status': 'ok', 'id': id}),
             content_type="application/json",
         ))
 
